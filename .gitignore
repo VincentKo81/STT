@@ -19,8 +19,9 @@ dataset/
 *.srt
 *.txt
 
-# glossary.txt 는 포함 (도메인 용어집, 민감 아님)
+# 코드/설정 파일은 포함
 !glossary.txt
+!requirements.txt
 
 # ───────────────────────────────────────
 # Python 가상환경 / 캐시

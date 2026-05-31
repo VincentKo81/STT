@@ -10,6 +10,13 @@
 import tempfile
 from pathlib import Path
 
+# .env 자동 로드 (OPENAI_API_KEY, ANTHROPIC_API_KEY)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent / ".env")
+except ImportError:
+    pass
+
 import streamlit as st
 
 import config

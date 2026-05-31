@@ -1,0 +1,10 @@
+# Python 의존성 (faster-whisper는 GPU 사용 시 CUDA/cuDNN 별도 필요)
+faster-whisper>=1.2.0
+openai>=1.0.0
+anthropic>=0.40.0
+streamlit>=1.40.0
+python-dotenv>=1.0.0
+
+# 시스템 요구사항(별도 설치):
+#   - ffmpeg  (오디오 디코딩/리샘플/분할)
+#   - GPU 사용 시 NVIDIA 드라이버 + CUDA (DGX Spark)
