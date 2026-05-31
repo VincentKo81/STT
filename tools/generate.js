@@ -56,7 +56,8 @@ const bCell = (text, w = 7560) => new TableCell({
 // 섹션 대제목 — before 여백 넉넉히 (섹션 간 여백 ①)
 const secTitle = t => new Paragraph({ spacing: { before: 400, after: 160 },
   children: [new TextRun({ text: t, font: FONT, size: 24, bold: true })] });
-const subTitle = t => new Paragraph({ spacing: { before: 160, after: 60 },
+// 소제목 — before 여백으로 소제목 앞 간격 확보 (빈 줄의 절반 ≈ 120)
+const subTitle = t => new Paragraph({ spacing: { before: 280, after: 60 },
   children: [new TextRun({ text: t, font: FONT, size: 22, bold: true })] });
 const bullet  = (t, lv = 0) => new Paragraph({
   numbering: { reference: 'bullets', level: lv },
@@ -94,7 +95,9 @@ for (const blk of (D.blocks || [])) {
     for (const t of (blk.items || [])) children.push(numItem(t));
   } else {
     for (const sub of (blk.subsections || [])) {
-      if (sub.subtitle) children.push(subTitle(sub.subtitle));
+      if (sub.subtitle) {
+        children.push(subTitle(sub.subtitle));   // 여백은 subTitle.before(280)로 처리
+      }
       for (const [t, lv] of (sub.items || [])) children.push(bullet(t, lv || 0));
     }
   }
