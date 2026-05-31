@@ -14,4 +14,6 @@ metadata:
 
 config.py 미해결 결정 3개: #2(모델)는 Mac=medium 합리적 / Spark GPU에서 large-v3 비교 예정. #1(보정 유무)·#3(보정 LLM)은 API 키 확보 후 검증 예정.
 
-[[stt-pipeline-overview]] [[stt-code-gotchas]]
+**2026-05-31 업데이트 — 회의록 LLM 확정**: **gpt-4.1-mini** (가성비 최고 ~9원/건, 6섹션·개조식 준수). 비교: gpt-4o(~55원, 구세대 비추) / gpt-4.1(~44원, 고품질) / gpt-5.4-nano(~4원, 미검증). **Ollama 로컬(gemma4:e2b·qwen3:8b)은 34000자 한국어 전사문에서 6섹션 형식 지시를 못 따라 실패**(짧은 3분은 OK) → 로컬 자동화는 Spark GPU+큰 모델(Phase 3) 전까지 보류. OpenAI 가격은 gpt-5.x 세대로 개편됨(gpt-4o 가격표에서 사라짐).
+
+[[stt-pipeline-overview]] [[stt-code-gotchas]] [[stt-workflow-design]]

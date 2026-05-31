@@ -21,4 +21,6 @@ metadata:
 4. API 키 발급(회의록 생성 Claude, 보정 OpenAI)
 5. git은 반드시 private + 데이터/키/모델 `.gitignore` 제외(음성·전사문·회의록은 고객사명·금액 포함 민감정보). 아직 git 미초기화 상태.
 
+**2026-05-31 구현**: GitHub private repo 연결 완료 — **github.com/VincentKo81/STT** (git init+push, `.gitignore`로 음성·회의록·키·모델·node_modules 제외). 서버=이 맥미니(**M4 Mac16,10, 16GB**, macOS 26.5). 실행: `.venv/bin/streamlit run app.py --server.address 0.0.0.0 --server.port 8501 --server.headless true --browser.gatherUsageStats false`. 같은 LAN 폰 브라우저에서 **192.168.45.32:8501** 접속 확인 완료. `.env`에 OPENAI_API_KEY 입력됨(python-dotenv 추가 → app.py에서 `load_dotenv` 자동로드, 코드함정 해소). **Tailscale 미설치**(회사 보안정책 확인 후 설치 예정). Ollama 0.24.0 설치돼 있고 qwen3:8b·gemma4:e2b 모델 보유(회의록 품질은 부적합).
+
 [[stt-pipeline-overview]] [[stt-workflow-design]]

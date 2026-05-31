@@ -18,4 +18,6 @@ metadata:
 키 구성: STT=faster-whisper(키 불필요) / 회의록 생성=Claude(키 필요, 기본 경로에도) / 보정=OpenAI(옵션 켤 때만).
 구현 갭: `app.py`가 현재 마크다운 초안만 생성 → `minutes.py`(6섹션 구조화) + `generate.js`(docx 렌더) 연결 필요.
 
+**2026-05-31 구현 완료**: app.py에 회의정보 입력칸(회의명·일시·장소·참석자) + .docx 자동생성 통합. 파이프라인: `minutes.generate_minutes_draft`(LLM 마크다운) → `md_to_meeting_data.parse_markdown_to_data`(blocks 구조 파싱) → `tools/generate.js --data <json>`(docx 렌더). 회의정보 미입력 시 LLM이 전사로 추정(**단 참석자는 화자정보 없어 부정확 → 직접 입력 권장**, 회의명·주제는 추정 양호). 회의주제는 입력칸 없이 항상 AI 요약. 일시 미입력 시 회의록 생성일(오늘, `today` 파라미터). 회의록 섹션: 1.개요 / 2.논의 / 3·4(LLM 자유제목) / 5.합의(번호매김) / 6.일정. GPT보정 기본 OFF, 회의록 LLM은 openai·ollama만(claude 제거). **미해결: 소제목 여백 미세조정**(generate.js subTitle before 280 적용했으나 Pages 캐시로 육안 확인 어려움 → 회사 Word에서 점검·조정 예정).
+
 [[stt-pipeline-overview]] [[stt-verified-settings]] [[stt-deployment]]
