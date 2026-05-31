@@ -100,6 +100,23 @@ with st.sidebar:
         value=_model_defaults.get(minutes_backend, config.MINUTES_MODEL),
     )
 
+    st.divider()
+
+    # 📋 회의록 프롬프트 확인 / 수정
+    st.header("📋 회의록 프롬프트")
+    with st.expander("프롬프트 보기 / 수정", expanded=False):
+        st.caption("LLM에 전달되는 시스템 프롬프트입니다. 수정하면 이번 실행에만 반영됩니다.")
+        custom_prompt = st.text_area(
+            "시스템 프롬프트",
+            value=M.MINUTES_SYSTEM,
+            height=400,
+            label_visibility="collapsed",
+        )
+        if custom_prompt != M.MINUTES_SYSTEM:
+            st.info("✏️ 프롬프트가 수정됐습니다. 실행 시 수정본이 사용됩니다.")
+        else:
+            st.success("✅ 기본 프롬프트 사용 중")
+
 # ── 메인 영역 ─────────────────────────────────────────────────
 uploaded = st.file_uploader(
     "회의 음성 파일을 올려주세요",
@@ -172,10 +189,16 @@ if run_btn and uploaded and meeting_subtitle:
         # ── 3) 회의록 생성 → .docx ───────────────────────────
         with st.status(f"📝 회의록 생성 중... ({minutes_backend}/{minutes_model})",
                        expanded=True) as status:
-            # 마크다운 생성
-            md = M.generate_minutes_draft(
-                final_text, backend=minutes_backend, model=minutes_model
-            )
+            # 마크다운 생성 (수정된 프롬프트 적용)
+            original_prompt = M.MINUTES_SYSTEM
+            if custom_prompt != M.MINUTES_SYSTEM:
+                M.MINUTES_SYSTEM = custom_prompt  # 임시 교체
+            try:
+                md = M.generate_minutes_draft(
+                    final_text, backend=minutes_backend, model=minutes_model
+                )
+            finally:
+                M.MINUTES_SYSTEM = original_prompt  # 원복
             status.update(label="📄 .docx 변환 중...", state="running")
 
             # .docx 생성
