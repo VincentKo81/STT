@@ -171,26 +171,30 @@ def generate_minutes_docx(
         location   회의장소
         attendees  참석자 (공백 3칸 구분)
         topic      회의주제 한 문장
-        filename   출력 파일명 (.docx)
+    Returns:
+        생성된 .docx 경로
     """
     from pipeline.md_to_meeting_data import parse_markdown_to_data
 
     meeting_data = parse_markdown_to_data(markdown_text, meeting_info)
-
-    # generate.js 에 MEETING_DATA를 JSON으로 넘겨서 실행
-    data_file = Path(tempfile.mktemp(suffix=".json"))
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / meeting_data["filename"]
 
+    # JSON 임시파일 → generate.js → .docx
+    data_file = Path(tempfile.mktemp(suffix=".json"))
     data_file.write_text(
         json.dumps({**meeting_data, "out_path": str(out_path)}, ensure_ascii=False),
         encoding="utf-8",
     )
     try:
-        subprocess.run(
+        result = subprocess.run(
             ["node", str(_GENERATE_JS), "--data", str(data_file)],
             check=True, capture_output=True, text=True,
         )
+        # generate.js 가 "OK:<path>" 를 stdout 에 씀
+        for line in result.stdout.splitlines():
+            if line.startswith("OK:"):
+                out_path = Path(line[3:])
     finally:
         data_file.unlink(missing_ok=True)
 
