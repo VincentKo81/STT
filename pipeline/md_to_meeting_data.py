@@ -23,7 +23,7 @@ def _safe_filename(text, max_len=24):
     return s[:max_len] or '회의록'
 
 
-def parse_markdown_to_data(markdown: str, meeting_info: dict) -> dict:
+def parse_markdown_to_data(markdown: str, meeting_info: dict, today: str = None) -> dict:
     """마크다운 → generate.js 데이터.
 
     Args:
@@ -121,7 +121,7 @@ def parse_markdown_to_data(markdown: str, meeting_info: dict) -> dict:
         return v if v else inferred.get(key, '')
 
     subtitle  = pick('subtitle')  or '(회의명 미상)'
-    date      = pick('date')      or '(일시 확인 필요)'
+    date      = pick('date')      or today or '(일시 확인 필요)'
     location  = pick('location')  or '(장소 확인 필요)'
     attendees = pick('attendees') or '(참석자 확인 필요)'
     topic     = pick('topic')     or subtitle

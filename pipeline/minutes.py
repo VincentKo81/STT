@@ -183,6 +183,7 @@ def generate_minutes_docx(
     markdown_text: str,
     meeting_info: dict,
     out_dir: Path,
+    today: str = None,
 ) -> Path:
     """회의록 마크다운 + 회의 정보 → AX 표준 .docx.
 
@@ -197,7 +198,7 @@ def generate_minutes_docx(
     """
     from pipeline.md_to_meeting_data import parse_markdown_to_data
 
-    meeting_data = parse_markdown_to_data(markdown_text, meeting_info)
+    meeting_data = parse_markdown_to_data(markdown_text, meeting_info, today=today)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / meeting_data["filename"]
 

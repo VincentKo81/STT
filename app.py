@@ -13,6 +13,7 @@
 """
 import json
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 # .env 자동 로드 (OPENAI_API_KEY, ANTHROPIC_API_KEY)
@@ -38,29 +39,27 @@ with st.sidebar:
 
     # 📝 회의 정보
     st.header("📝 회의 정보")
-    st.caption("비워두면 AI가 전사 내용을 보고 자동으로 채웁니다.")
+    st.caption("비워두면 AI가 전사 내용을 보고 자동으로 채웁니다. (회의주제는 항상 AI 요약)")
     meeting_subtitle = st.text_input(
         "회의명",
-        placeholder="(비우면 AI가 작성)",
+        placeholder="입력 (없으면 AI 자동 생성)",
     )
     meeting_date = st.text_input(
         "회의일시",
-        placeholder="2026.05.31 (일) 14:00 ~ 15:30",
+        placeholder="입력 (없으면 회의록 생성일로 AI 자동 생성)",
     )
     meeting_location = st.text_input(
         "회의장소",
-        placeholder="본사 3층 회의실",
+        placeholder="",
     )
     meeting_attendees = st.text_area(
         "참석자",
-        placeholder="홍길동 책임 (AX 데이터팀)   김철수 매니저 (에스핀테크)",
+        placeholder="사용자 입력",
         height=80,
-        help="이름 직급 (소속팀) 형식, 공백 3칸으로 구분",
+        help="이름 직급 (소속팀) 형식, 공백 3칸으로 구분. 화자 정보가 없어 AI 추정이 부정확하니 직접 입력 권장.",
     )
-    meeting_topic = st.text_input(
-        "회의주제",
-        placeholder="Azure 클라우드 도입 방향 및 MSP 선정 논의",
-    )
+    # 회의주제는 입력칸 없이 항상 AI가 전사 내용으로 자동 요약
+    meeting_topic = ""
 
     st.divider()
 
@@ -82,18 +81,18 @@ with st.sidebar:
     # 🤖 회의록 설정
     st.header("🤖 회의록 설정")
     enable_correction = st.checkbox(
-        "GPT 보정 사용", value=config.ENABLE_CORRECTION,
+        "GPT 보정 사용", value=False,
         help="전사 후 GPT로 오인식 교정 (OpenAI 키 필요)",
     )
+    _backends = ["openai", "ollama"]
     minutes_backend = st.selectbox(
         "회의록 LLM",
-        ["openai", "claude", "ollama"],
-        index=["openai", "claude", "ollama"].index(config.MINUTES_BACKEND),
-        help="openai=gpt-4o(기본) / claude=Claude API / ollama=로컬 무료",
+        _backends,
+        index=_backends.index(config.MINUTES_BACKEND) if config.MINUTES_BACKEND in _backends else 0,
+        help="openai=gpt-4.1-mini(기본) / ollama=로컬 무료",
     )
     _model_defaults = {
         "openai": config.MINUTES_MODEL,   # gpt-4.1-mini
-        "claude": "claude-sonnet-4-6",
         "ollama": "qwen3:8b",
     }
     minutes_model = st.text_input(
@@ -211,7 +210,8 @@ if run_btn and uploaded:
                 "topic"     : meeting_topic,
             }
             out_dir  = Path(__file__).parent / "outputs"
-            docx_path = M.generate_minutes_docx(md, meeting_info, out_dir)
+            today_str = datetime.now().strftime("%Y.%m.%d")
+            docx_path = M.generate_minutes_docx(md, meeting_info, out_dir, today=today_str)
             docx_bytes = docx_path.read_bytes()
 
             status.update(label="✅ 회의록 완료", state="complete")
