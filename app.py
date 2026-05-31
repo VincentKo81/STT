@@ -38,9 +38,10 @@ with st.sidebar:
 
     # 📝 회의 정보
     st.header("📝 회의 정보")
+    st.caption("비워두면 AI가 전사 내용을 보고 자동으로 채웁니다.")
     meeting_subtitle = st.text_input(
-        "회의명 *",
-        placeholder="에스핀테크 Azure 도입 1차 협의",
+        "회의명",
+        placeholder="(비우면 AI가 작성)",
     )
     meeting_date = st.text_input(
         "회의일시",
@@ -104,7 +105,7 @@ with st.sidebar:
 
     # 📋 회의록 프롬프트 확인 / 수정
     st.header("📋 회의록 프롬프트")
-    with st.expander("프롬프트 보기 / 수정", expanded=False):
+    with st.expander("프롬프트 보기 / 수정", expanded=True):
         st.caption("LLM에 전달되는 시스템 프롬프트입니다. 수정하면 이번 실행에만 반영됩니다.")
         custom_prompt = st.text_area(
             "시스템 프롬프트",
@@ -123,16 +124,16 @@ uploaded = st.file_uploader(
     type=["m4a", "mp3", "wav", "aac", "flac", "ogg"],
 )
 
-if not meeting_subtitle:
-    st.info("👈 왼쪽 사이드바에서 **회의명**을 입력한 뒤 음성 파일을 올려주세요.")
+if not uploaded:
+    st.info("👈 회의 음성 파일을 올려주세요. 회의정보를 비워두면 AI가 전사 내용으로 자동 작성합니다.")
 
 run_btn = st.button(
     "🚀 전사 + 회의록 생성",
     type="primary",
-    disabled=(not uploaded or not meeting_subtitle),
+    disabled=(not uploaded),
 )
 
-if run_btn and uploaded and meeting_subtitle:
+if run_btn and uploaded:
     lang = None if language == "(자동감지)" else language
 
     # 임시 오디오 파일 저장 (한글 파일명 인코딩 이슈 회피)
@@ -216,7 +217,7 @@ if run_btn and uploaded and meeting_subtitle:
             status.update(label="✅ 회의록 완료", state="complete")
 
         # ── 결과 표시 ─────────────────────────────────────────
-        st.success(f"✅ **{meeting_subtitle}** 회의록이 완성됐습니다!")
+        st.success(f"✅ 회의록이 완성됐습니다! ({docx_path.name})")
 
         # 다운로드 버튼
         col1, col2, col3 = st.columns(3)
