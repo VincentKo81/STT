@@ -91,7 +91,7 @@ with st.sidebar:
         help="openai=gpt-4o(기본) / claude=Claude API / ollama=로컬 무료",
     )
     _model_defaults = {
-        "openai": config.MINUTES_MODEL,
+        "openai": config.MINUTES_MODEL,   # gpt-4.1-mini
         "claude": "claude-sonnet-4-6",
         "ollama": "qwen3:8b",
     }

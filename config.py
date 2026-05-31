@@ -26,8 +26,13 @@ CORRECTION_CHUNK_LINES = 120           # 16k 출력 한도 회피 (보고서 기
 # --- 회의록 ---
 # 백엔드: "openai"(기본, OPENAI_API_KEY) | "claude"(ANTHROPIC_API_KEY) | "ollama"(로컬, 무료)
 MINUTES_BACKEND = "openai"
-# 모델: openai="gpt-4o"(기본, 고품질) or "gpt-4o-mini"(저렴·빠름) / claude="claude-sonnet-4-6" / ollama="qwen3:8b"
-MINUTES_MODEL = "gpt-4o"
+# 모델 가성비 순위 (2026-05-31 가격 기준):
+#   gpt-4.1-mini  →  ~9원/건,  품질 ★★★★  ← 기본값 (가성비 최고)
+#   gpt-4.1       →  ~44원/건, 품질 ★★★★★
+#   gpt-4.1-nano  →  ~2원/건,  품질 미검증
+#   gpt-5-mini    →  ~7원/건,  품질 미검증
+#   gpt-4o        →  ~55원/건, 구세대 (비추)
+MINUTES_MODEL = "gpt-4.1-mini"
 
 # --- 데이터셋 (SRT → 파인튜닝용 음성-텍스트 쌍) ---
 DATASET_MAX_SECONDS = 30               # Whisper 학습 단위 상한
