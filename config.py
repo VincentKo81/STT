@@ -24,9 +24,10 @@ CORRECTION_MODEL = "gpt-4o-mini"       # 두 테스트 보고서에서 검증된
 CORRECTION_CHUNK_LINES = 120           # 16k 출력 한도 회피 (보고서 기준값)
 
 # --- 회의록 ---
-# [권장] 표준 .docx의 정본은 ax-meeting-minutes 스킬. 아래는 빠른 '초안' 생성용 모델.
-# 최신 모델명은 https://docs.claude.com 에서 확인할 것.
-MINUTES_MODEL = "claude-opus-4-8"
+# 백엔드: "openai"(기본, OPENAI_API_KEY) | "claude"(ANTHROPIC_API_KEY) | "ollama"(로컬, 무료)
+MINUTES_BACKEND = "openai"
+# 모델: openai="gpt-4o-mini"(저렴) or "gpt-4o"(고품질) / claude="claude-sonnet-4-6" / ollama="qwen3:8b"
+MINUTES_MODEL = "gpt-4o-mini"
 
 # --- 데이터셋 (SRT → 파인튜닝용 음성-텍스트 쌍) ---
 DATASET_MAX_SECONDS = 30               # Whisper 학습 단위 상한

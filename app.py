@@ -33,6 +33,20 @@ with st.sidebar:
     enable_correction = st.checkbox("GPT 보정 사용", value=config.ENABLE_CORRECTION)
     enable_minutes = st.checkbox("회의록 초안 생성", value=False,
                                  help="표준 .docx 는 ax-meeting-minutes 스킬 사용 권장")
+    if enable_minutes:
+        minutes_backend = st.selectbox(
+            "회의록 LLM 백엔드",
+            ["openai", "claude", "ollama"],
+            index=["openai", "claude", "ollama"].index(config.MINUTES_BACKEND),
+            help="openai: gpt-4o-mini(기본, 저렴) / claude: Claude API / ollama: 로컬 무료",
+        )
+        minutes_model_default = {
+            "openai": "gpt-4o-mini", "claude": "claude-sonnet-4-6", "ollama": "qwen3:8b"
+        }.get(minutes_backend, config.MINUTES_MODEL)
+        minutes_model = st.text_input("회의록 모델명", value=minutes_model_default)
+    else:
+        minutes_backend = config.MINUTES_BACKEND
+        minutes_model = config.MINUTES_MODEL
 
 uploaded = st.file_uploader(
     "회의 음성 파일", type=["m4a", "mp3", "wav", "aac", "flac", "ogg"]
@@ -96,7 +110,9 @@ if uploaded and st.button("실행", type="primary"):
     # 3) (선택) 회의록 초안
     if enable_minutes:
         with st.status("회의록 초안 생성 중...", expanded=True) as status:
-            md = M.generate_minutes_draft(final_text, model=config.MINUTES_MODEL)
+            md = M.generate_minutes_draft(
+                final_text, backend=minutes_backend, model=minutes_model
+            )
             status.update(label="초안 완료", state="complete")
         st.subheader("회의록 초안 (마크다운)")
         st.info("표준 양식 .docx 는 ax-meeting-minutes 스킬로 생성하세요. 아래는 빠른 확인용 초안입니다.")

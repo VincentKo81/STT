@@ -1,7 +1,8 @@
 """회의록 생성.
 
 LLM 백엔드를 선택할 수 있습니다:
-  - "ollama"  : 로컬 Ollama (비용 0, 데이터 외부 유출 없음) ← 기본값
+  - "openai"  : OpenAI API (OPENAI_API_KEY 필요) ← 기본값
+  - "ollama"  : 로컬 Ollama (비용 0, 데이터 외부 유출 없음)
   - "claude"  : Anthropic Claude API (ANTHROPIC_API_KEY 필요)
 
 [표준 .docx 출력] 두 백엔드 모두 6섹션 마크다운을 만들고,
@@ -93,6 +94,24 @@ def _generate_ollama(transcript_text: str, model: str) -> str:
 
 
 # ─────────────────────────────────────────
+# OpenAI API 백엔드
+# ─────────────────────────────────────────
+def _generate_openai(transcript_text: str, model: str) -> str:
+    """OpenAI API로 회의록 마크다운 생성. correct.py와 동일한 패턴."""
+    from openai import OpenAI
+    client = OpenAI()
+    resp = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": MINUTES_SYSTEM},
+            {"role": "user",   "content": f"다음 회의 전사본으로 위 형식에 맞춰 회의록을 작성하세요. 반드시 ## 1. 회의 개요 부터 ## 6. 주요 합의 사항 까지 6개 섹션을 모두 출력할 것.\n\n{transcript_text}"},
+        ],
+        temperature=0.3,
+    )
+    return (resp.choices[0].message.content or "").strip()
+
+
+# ─────────────────────────────────────────
 # Claude API 백엔드
 # ─────────────────────────────────────────
 def _generate_claude(transcript_text: str, model: str, max_tokens: int = 4000) -> str:
@@ -115,18 +134,22 @@ def _generate_claude(transcript_text: str, model: str, max_tokens: int = 4000) -
 def generate_minutes_draft(
     transcript_text: str,
     *,
-    backend: str = "ollama",        # "ollama" | "claude"
-    model: str = "gemma4:e2b",      # ollama 기본값; claude면 모델명 따로 지정
+    backend: str = "openai",          # "openai" | "claude" | "ollama"
+    model: str = "gpt-4o-mini",       # 기본값: OpenAI gpt-4o-mini
     max_tokens: int = 4000,
 ) -> str:
     """전사본 → 회의록 마크다운 (백엔드 선택 가능).
 
     Args:
-        backend: "ollama" 또는 "claude"
-        model  : ollama 모델명(예: "gemma4:e2b", "qwen3:8b")
-                 또는 claude 모델명(예: "claude-sonnet-4-6")
+        backend: "openai" / "claude" / "ollama"
+        model  : 각 백엔드 모델명
+                 openai  → "gpt-4o-mini"(기본, 저렴) | "gpt-4o"(고품질)
+                 claude  → "claude-sonnet-4-6"
+                 ollama  → "qwen3:8b" | "gemma4:e2b"
     """
-    if backend == "claude":
+    if backend == "openai":
+        return _generate_openai(transcript_text, model)
+    elif backend == "claude":
         return _generate_claude(transcript_text, model, max_tokens)
     else:
         return _generate_ollama(transcript_text, model)
