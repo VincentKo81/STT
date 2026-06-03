@@ -13,6 +13,7 @@
 """
 import json
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -29,6 +30,7 @@ import config
 from pipeline import transcribe as T
 from pipeline import correct as C
 from pipeline import minutes as M
+from pipeline import history as H
 
 # ─────────────────────────────────────────────────────────────
 st.set_page_config(page_title="회의 STT 파이프라인", layout="wide")
@@ -146,6 +148,7 @@ run_btn = st.button(
 
 if run_btn and uploaded:
     lang = None if language == "(자동감지)" else language
+    t_start = time.perf_counter()
 
     # 임시 오디오 파일 저장 (한글 파일명 인코딩 이슈 회피)
     suffix = Path(uploaded.name).suffix
@@ -166,6 +169,7 @@ if run_btn and uploaded:
                 if total:
                     bar.progress(min(cur / total, 1.0))
 
+            t_tr = time.perf_counter()
             segments, info = T.transcribe(
                 audio_path,
                 model_size=model_size,
@@ -178,8 +182,10 @@ if run_btn and uploaded:
             bar.progress(1.0)
             txt = T.to_txt(segments)
             srt = T.to_srt(segments)
+            el_transcribe = time.perf_counter() - t_tr
             status.update(
-                label=f"✅ 전사 완료 — {len(segments)}개 구간", state="complete"
+                label=f"✅ 전사 완료 — {len(segments)}개 구간 · {H.fmt_duration(el_transcribe)}",
+                state="complete",
             )
 
         # ── 2) (선택) 보정 ────────────────────────────────────
@@ -201,6 +207,7 @@ if run_btn and uploaded:
         # ── 3) 회의록 생성 → .docx ───────────────────────────
         with st.status(f"📝 회의록 생성 중... ({minutes_backend}/{minutes_model})",
                        expanded=True) as status:
+            t_min = time.perf_counter()
             # 마크다운 생성 (수정된 프롬프트 적용)
             original_prompt = M.MINUTES_SYSTEM
             if custom_prompt != M.MINUTES_SYSTEM:
@@ -225,11 +232,46 @@ if run_btn and uploaded:
             today_str = datetime.now().strftime("%Y.%m.%d")
             docx_path = M.generate_minutes_docx(md, meeting_info, out_dir, today=today_str)
             docx_bytes = docx_path.read_bytes()
+            el_minutes = time.perf_counter() - t_min
 
-            status.update(label="✅ 회의록 완료", state="complete")
+            status.update(label=f"✅ 회의록 완료 · {H.fmt_duration(el_minutes)}", state="complete")
 
         # ── 결과 표시 ─────────────────────────────────────────
+        el_total = time.perf_counter() - t_start
+        duration_sec = getattr(info, "duration", None)
+
+        # 이력 저장 (실패해도 결과 표시는 계속)
+        try:
+            H.save_run(
+                audio_name=uploaded.name,
+                audio_size_mb=getattr(uploaded, "size", 0) / 1_000_000,
+                duration_sec=duration_sec,
+                elapsed_total=el_total,
+                elapsed_transcribe=el_transcribe,
+                elapsed_minutes=el_minutes,
+                model=_eff_model,
+                device=_eff_device,
+                backend=minutes_backend,
+                minutes_model=minutes_model,
+                correction=enable_correction,
+                n_segments=len(segments),
+                txt=txt,
+                srt=srt,
+                md=md,
+                corrected=corrected,
+                docx_path=docx_path,
+                meeting_info=meeting_info,
+            )
+        except Exception as e:
+            st.warning(f"이력 저장 중 문제가 발생했지만 결과는 정상입니다: {e}")
+
         st.success(f"✅ 회의록이 완성됐습니다! ({docx_path.name})")
+        mc1, mc2, mc3, mc4 = st.columns(4)
+        mc1.metric("⏱️ 총 소요시간", H.fmt_duration(el_total))
+        mc2.metric("🎙️ 전사", H.fmt_duration(el_transcribe))
+        mc3.metric("📝 회의록", H.fmt_duration(el_minutes))
+        mc4.metric("🔊 오디오 길이", H.fmt_duration(duration_sec))
+        st.caption("📜 왼쪽 사이드바의 **이력** 페이지에서 과거 전사·회의록을 다시 받을 수 있습니다.")
 
         # 다운로드 버튼
         col1, col2, col3 = st.columns(3)

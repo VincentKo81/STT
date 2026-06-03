@@ -84,7 +84,7 @@ def _get_model(model_size: str, device: str, compute_type: str):
 
 def _get_batched_pipeline(model_size: str, device: str, compute_type: str):
     """BatchedInferencePipeline을 캐싱하여 반환."""
-    from faster_whisper import BatchedInferencePipeline
+    from faster_whisper import WhisperModel, BatchedInferencePipeline
 
     try:
         import streamlit as st
