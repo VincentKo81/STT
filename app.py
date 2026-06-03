@@ -65,15 +65,27 @@ with st.sidebar:
 
     # ⚙️ 전사 설정
     st.header("⚙️ 전사 설정")
-    model_size = st.selectbox(
-        "전사 모델", ["medium", "large-v3"],
-        index=0 if config.WHISPER_MODEL == "medium" else 1,
-        help="medium=Mac CPU 검증 / large-v3=GPU(DGX Spark) 권장",
+    _MODEL_AUTO = "자동 (GPU=large-v3 / CPU=medium)"
+    _model_opts = [_MODEL_AUTO, "medium", "large-v3"]
+    _model_idx  = _model_opts.index(config.WHISPER_MODEL) if config.WHISPER_MODEL in _model_opts else 0
+    _model_choice = st.selectbox(
+        "전사 모델", _model_opts, index=_model_idx,
+        help="자동=GPU면 large-v3(CER 13%)·CPU면 medium(CER 28%) 선택 / 검증: large-v3가 오류율 절반",
     )
+    model_size = "auto" if _model_choice == _MODEL_AUTO else _model_choice
+
     compute_type = st.selectbox(
         "compute_type", ["int8", "float16", "int8_float16"], index=0,
     )
     device   = st.selectbox("device", ["auto", "cpu", "cuda"], index=0)
+
+    # 실제 적용될 모델/디바이스 미리보기
+    _eff_model, _eff_device = T.resolve_model(model_size, device)
+    if _eff_device == "cuda":
+        st.success(f"→ 적용: **{_eff_model}** (GPU 감지) · compute_type=float16 권장")
+    else:
+        st.info(f"→ 적용: **{_eff_model}** (CPU)")
+
     language = st.selectbox("언어", ["ko", "(자동감지)"], index=0)
 
     st.divider()
