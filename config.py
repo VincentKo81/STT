@@ -11,8 +11,11 @@ OUTPUT_DIR = ROOT / "outputs"          # 전사/회의록 결과
 DATASET_DIR = ROOT / "dataset"         # 파인튜닝 데이터셋
 
 # --- STT (faster-whisper) ---
-# [결정 #2] 'medium'(Mac CPU에서 38분 완주 검증) ↔ 'large-v3'(DGX Spark GPU 권장, 정확도↑)
-WHISPER_MODEL = "medium"
+# [결정 #2] 'auto' = 디바이스 기반 자동 선택 (GPU→large-v3 / CPU→medium)
+#   검증(5.2분 회의, 정답 대비 CER): medium 27.5% vs large-v3 13.1% — large-v3가 오류율 절반.
+#   large-v3는 CPU에서 ~2배 느리지만 GPU(DGX Spark)에선 속도 페널티 없음 → device로 자동 분기.
+#   고정하려면 "medium" 또는 "large-v3"로 변경.
+WHISPER_MODEL = "auto"
 WHISPER_COMPUTE_TYPE = "int8"          # CPU: "int8" / GPU: "float16" 권장
 WHISPER_DEVICE = "auto"                # "cpu" | "cuda" | "auto"
 WHISPER_LANGUAGE = "ko"                # 한·영 혼용이면 None(자동감지)도 실험해볼 것
