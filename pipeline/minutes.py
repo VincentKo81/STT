@@ -211,10 +211,14 @@ def generate_minutes_docx(
     try:
         result = subprocess.run(
             ["node", str(_GENERATE_JS), "--data", str(data_file)],
-            check=True, capture_output=True, text=True,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         # generate.js 가 "OK:<path>" 를 stdout 에 씀
-        for line in result.stdout.splitlines():
+        for line in (result.stdout or "").splitlines():
             if line.startswith("OK:"):
                 out_path = Path(line[3:])
     finally:
